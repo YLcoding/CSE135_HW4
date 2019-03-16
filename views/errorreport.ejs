@@ -1,0 +1,133 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title><%= title %></title>
+		<script>
+		window.onload = function() {
+			let all_results = <%-JSON.stringify(results)%>;
+			let all_errors = all_results[all_results.length-1];
+			all_results = all_results.slice(0, all_results.length-1);
+			let results_path = {};
+			let errors_path = {};
+			// first, divide them into different path
+			// then, divide them into different day
+			// then, caculate error rate in each day
+			// then, display them by day,
+			// by path
+			for(i=0;i<all_results.length;i++){ 
+				let user_data=all_results[i];
+				let key = user_data['path'];
+				if (key in results_path) {
+					let dateObj = new Date(user_data['timestamp']);
+					let month = dateObj.getUTCMonth() + 1;
+					let day = dateObj.getUTCDate();
+					let year = dateObj.getUTCFullYear();
+					let newdate = year + "/" + month + "/" + day;
+					if (newdate in results_path[key]) {
+						results_path[key][newdate].push(user_data);
+					}
+					else {
+						results_path[key][newdate] = [];
+						results_path[key][newdate].push(user_data);
+					}
+				}
+				else {
+					let dateObj = new Date(user_data['timestamp']);
+					let month = dateObj.getUTCMonth() + 1;
+					let day = dateObj.getUTCDate();
+					let year = dateObj.getUTCFullYear();
+					let newdate = year + "/" + month + "/" + day;
+					results_path[key] = {};
+					results_path[key][newdate] = [];
+					results_path[key][newdate].push(user_data);
+				}
+			}
+			for(i=0;i<all_errors.length;i++){ 
+				let user_data=all_errors[i];
+				let key = user_data['path'];
+				if (key in errors_path) {
+					let dateObj = new Date(user_data['timestamp']);
+					let month = dateObj.getUTCMonth() + 1;
+					let day = dateObj.getUTCDate();
+					let year = dateObj.getUTCFullYear();
+					let newdate = year + "/" + month + "/" + day;
+					if (newdate in errors_path[key]) {
+						errors_path[key][newdate].push(user_data);
+					}
+					else {
+						errors_path[key][newdate] = [];
+						errors_path[key][newdate].push(user_data);
+					}
+				}
+				else {
+					let dateObj = new Date(user_data['timestamp']);
+					let month = dateObj.getUTCMonth() + 1;
+					let day = dateObj.getUTCDate();
+					let year = dateObj.getUTCFullYear();
+					let newdate = year + "/" + month + "/" + day;
+					errors_path[key] = {};
+					errors_path[key][newdate] = [];
+					errors_path[key][newdate].push(user_data);
+				}
+			}
+			let data = [];
+			let errorRate = {};
+			for (let path in errors_path) {
+				errorRate[path] = [];
+				for (let date in errors_path[path]) {
+					if (path in results_path)
+						errorRate[path].push({label: date, y: errors_path[path][date].length / results_path[path][date].length});
+				}
+			}
+			for (let path in errors_path) {
+				data.push({
+					type: "column", 
+					axisYType: "secondary",
+					name: path,
+					showInLegend: true,
+					markerSize: 0,
+					dataPoints: errorRate[path]
+				});
+			}
+			let chart = new CanvasJS.Chart("chartContainer", {
+				animationEnabled: true,
+				title: {
+					text: "Error Rate"
+				},
+				axisX: {
+					valueFormatString: "MMM YYYY"
+				},
+				axisY2: {
+					title: "Error Rate",
+					suffix: ""
+				},
+				toolTip: {
+					shared: true
+				},
+				legend: {
+					cursor: "pointer",
+					verticalAlign: "top",
+					horizontalAlign: "center",
+					dockInsidePlotArea: true,
+					itemclick: toogleDataSeries
+				},
+				data: data
+			});
+			function toogleDataSeries(e){
+				if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+					e.dataSeries.visible = false;
+				} else{
+					e.dataSeries.visible = true;
+				}
+				chart.render();
+			}
+			chart.render();
+		}
+		</script>
+	</head>
+	<body>
+		<div id="chartContainer" style="height: 300px; width: 100%;"></div>
+
+		<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+	</body>
+</html>

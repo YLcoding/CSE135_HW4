@@ -1,0 +1,292 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title><%= title %></title>
+		<script>
+		window.onload = function() {
+			let all_result = <%-JSON.stringify(results)%>;
+			let abso_data = [];
+			let avai_data = [];
+			let abso_xy = {};
+			let abso_z = {};
+			let avai_xy = {};
+			let avai_z = {};
+			for(i=0;i<all_result.length;i++){
+				let user_data=all_result[i];
+				let key = user_data['absoscreenHeight'];
+
+				let wh_key = JSON.stringify({
+					x: user_data['absoscreenWidth'],
+					y: user_data['absoscreenHeight']
+				});
+				if (wh_key in abso_z) {
+					abso_z[wh_key] += 1;
+				}
+				else {
+					abso_z[wh_key] = 1;
+					abso_xy[wh_key] = {
+						x: user_data['absoscreenWidth'],
+						y: user_data['absoscreenHeight']
+					}
+				}
+				wh_key = JSON.stringify({
+					x: user_data['availscreenWidth'],
+					y: user_data['availscreenHeight']
+				});
+				if (wh_key in avai_z) {
+					avai_z[wh_key] += 1;
+				}
+				else {
+					avai_z[wh_key] = 1;
+					avai_xy[wh_key] = {
+						x: user_data['availscreenWidth'],
+						y: user_data['availscreenHeight']
+					}
+				}
+			}
+			for (let key in abso_xy) {
+				abso_data.push({
+					x: abso_xy[key]['x'],
+					y: abso_xy[key]['y'],
+					z: abso_z[key]
+				})
+			}
+			for (let key in avai_xy) {
+				avai_data.push({
+					x: avai_xy[key]['x'],
+					y: avai_xy[key]['y'],
+					z: avai_z[key]
+				})
+			}
+			let chart = new CanvasJS.Chart("chartContainer_abso", {
+				animationEnabled: true,
+				zoomEnabled: true,
+				title:{
+					text: "Absolute Screen Pixel"
+				},
+				axisX: {
+					title:"Absolute Screen Width",
+				},
+				axisY:{
+					title: "Absolute Screen Height",
+				},
+				legend:{
+					horizontalAlign: "left"
+				},
+				data: [{
+					type: "bubble",
+					toolTipContent: "<b>Width: </b>{x} pixel<br/><b>Height: </b>{y} pixel<br/> Times: {z}",
+					dataPoints: abso_data
+				}]
+			});
+			chart.render();
+			chart = new CanvasJS.Chart("chartContainer_avail", {
+				animationEnabled: true,
+				zoomEnabled: true,
+				title:{
+					text: "Avaiable Screen Pixel"
+				},
+				axisX: {
+					title:"Avaiable Screen Width",
+				},
+				axisY:{
+					title: "Avaiable Screen Height",
+				},
+				legend:{
+					horizontalAlign: "left"
+				},
+				data: [{
+					type: "bubble",
+					toolTipContent: "<b>Width: </b>{x} pixel<br/><b>Height: </b>{y} pixel<br/> Times: {z}",
+					dataPoints: avai_data
+				}]
+			});
+			chart.render();
+			function dataURItoBlob(dataURI) {
+			    // convert base64/URLEncoded data component to raw binary data held in a string
+			    var byteString;
+			    if (dataURI.split(',')[0].indexOf('base64') >= 0)
+			        byteString = atob(dataURI.split(',')[1]);
+			    else
+			        byteString = unescape(dataURI.split(',')[1]);
+
+			    // separate out the mime component
+			    var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+
+			    // write the bytes of the string to a typed array
+			    var ia = new Uint8Array(byteString.length);
+			    for (var i = 0; i < byteString.length; i++) {
+			        ia[i] = byteString.charCodeAt(i);
+			    }
+
+			    return new Blob([ia], {type:mimeString});
+			}
+			var canvas1 = $("#chartContainer_abso .canvasjs-chart-canvas").get(0);
+			var canvas2 = $("#chartContainer_avail .canvasjs-chart-canvas").get(0);
+			//console.log(dataURL);
+
+			$("#exportButton1").click(function(){
+				var dataURL = canvas1.toDataURL();
+				var pdf = new jsPDF();
+				pdf.addImage(dataURL, 'JPEG', 0, 0,200,70);
+				pdf.save("download.pdf");
+			});
+			$("#exportButton2").click(function(){
+				var dataURL = canvas1.toDataURL();
+				var pdf = new jsPDF();
+				pdf.addImage(dataURL, 'JPEG', 0, 0,200,70);
+				pdf.save("download.pdf");
+			});
+
+			$("#shareButton1").click(function(){
+				$("#slack1")[0].style.display="inline";
+				var dataURL = canvas1.toDataURL();
+				var blob = dataURItoBlob(dataURL);
+				var formData = new FormData();
+				formData.append('file', blob, "Chart");
+				formData.append('token', "xoxp-514909110179-523746889015-578760682850-581f5a84c1aee80cf8cbbe058eca87c9");
+				formData.append('channels', $("#channal1")[0].value);
+				var xhr = new XMLHttpRequest();
+				xhr.open('POST','https://slack.com/api/files.upload', true);
+
+				 // Set up a handler for when the request finishes.
+				xhr.onload = function () {
+					if (xhr.status === 200) {
+					// File(s) uploaded.
+						$("#shareButton1").innerHTML = 'Uploaded';
+					} else {
+						alert('An error occurred!');
+					}
+				};
+				 xhr.send(formData);
+
+			});
+
+			$("#shareButton2").click(function(){
+				$("#slack2")[0].style.display="inline";
+				var dataURL = canvas2.toDataURL();
+				var blob = dataURItoBlob(dataURL);
+				var formData = new FormData();
+				formData.append('file', blob, "Chart");
+				formData.append('token', "xoxp-514909110179-523746889015-578760682850-581f5a84c1aee80cf8cbbe058eca87c9");
+				formData.append('channels', $("#channal2")[0].value);
+				var xhr = new XMLHttpRequest();
+				xhr.open('POST','https://slack.com/api/files.upload', true);
+
+				// Set up a handler for when the request finishes.
+				xhr.onload = function () {
+					if (xhr.status === 200) {
+						// File(s) uploaded.
+						$("#shareButton2").innerHTML = 'Uploaded';
+					} else {
+						alert('An error occurred!');
+					}
+				};
+				xhr.send(formData);
+			});
+
+			$("#emailButton1").click(function(){
+				$("#emailForm1")[0].style.display="inline";
+			});
+
+			$("#emailButton2").click(function(){
+				$("#emailForm2")[0].style.display="inline";
+			});
+
+			$("#emailSubmit1").click(function(){
+				event.preventDefault();
+				var myform=$("#emailForm1");
+				var params = myform.serializeArray().reduce(function(obj, item) {
+						obj[item.name] = item.value;
+						return obj;
+				}, {});
+
+				params['message']=JSON.stringify(abso_data);
+				// Change to your service ID, or keep using the default service
+				var service_id = "gmail";
+
+				var template_id = "imageshare";
+				myform.find("button").text("Sending...");
+				emailjs.send(service_id, template_id, params)
+				.then(function(){
+					alert("Sent!");
+					myform.find("button").text("Send");
+				}, function(err) {
+					alert("Send email failed!\r\n Response:\n " + JSON.stringify(err));
+					myform.find("button").text("Send");
+				});
+			});
+			$("#emailSubmit2").click(function(){
+				event.preventDefault();
+				var myform=$("#emailForm");
+				var params = myform.serializeArray().reduce(function(obj, item) {
+					obj[item.name] = item.value;
+					return obj;
+				}, {});
+
+				params['message']=JSON.stringify(avai_data);
+				// Change to your service ID, or keep using the default service
+				var service_id = "gmail";
+
+				var template_id = "imageshare";
+				myform.find("button").text("Sending...");
+				emailjs.send(service_id, template_id, params)
+				.then(function(){
+					alert("Sent!");
+					myform.find("button").text("Send");
+				}, function(err) {
+					alert("Send email failed!\r\n Response:\n " + JSON.stringify(err));
+					myform.find("button").text("Send");
+				});
+			});
+		}
+		</script>
+		<script type="text/javascript" src="https://cdn.emailjs.com/sdk/2.3.2/email.min.js"></script>
+		<script type="text/javascript">
+			(function(){
+				emailjs.init("user_B5uv3Wl3M2EomCD6FbtFz");
+			})();
+		</script>
+	</head>
+	<body>
+		<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.3/jspdf.min.js"></script>
+		<div id="chartContainer_abso" style="height: 300px; width: 100%;"></div>
+		<button id="exportButton1" type="button">Export as PDF</button>
+		<br/>
+		<div id="slack1" style="display:none">Slack Channal ID:<input type="text" id="channal1" name="Slack Channal ID"></input></div>
+		<button id="shareButton1" type="button">Share via Slack</button>
+		<br/>
+		<form style="display:none" class="modal-content animate" action="#" id="emailForm1">
+			<div class="container">
+				<label for="email"><b>email</b></label>
+				<input type="text" placeholder="Enter Email" name="email" required>
+
+				<label for="title"><b>title</b></label>
+				<input type="text" placeholder="Enter Title" name="title" required>
+				
+				<button id="emailSubmit1" type="submit">Send</button>
+			</div>
+		</form>
+		<button id="emailButton1" type="button">Share via Email</button>
+		<div id="chartContainer_avail" style="height: 300px; width: 100%;"></div>
+		<button id="exportButton2" type="button">Export as PDF</button>
+		<br/>
+		<div id="slack2" style="display:none">Slack Channal ID:<input type="text" id="channal2" name="Slack Channal ID"></input></div>
+		<button id="shareButton2" type="button">Share via Slack</button>
+		<br/>
+		<form style="display:none" class="modal-content animate" action="#" id="emailForm2">
+			<div class="container">
+				<label for="email"><b>email</b></label>
+				<input type="text" placeholder="Enter Email" name="email" required>
+
+				<label for="title"><b>title</b></label>
+				<input type="text" placeholder="Enter Title" name="title" required>
+				
+				<button id="emailSubmit2" type="submit">Send</button>
+			</div>
+		</form>
+		<button id="emailButton2" type="button">Share via Email</button>
+		<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+	</body>
+</html>

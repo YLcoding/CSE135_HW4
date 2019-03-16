@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+   <form action="/logout" method="GET">
+      <button type="submit" class="btn btn-primary float-right">Log Out</button>
+   </form>
+    <h1><%= title %></h1>
+    <p>Hello <%= curUser.firstName %> <%= curUser.lastName %>, welcome to <%= title %></p>
+    <a href="/profile">Go back to my profile</a>
+    <div class="container">
+      <!-- add user modal and form -->
+      <button type="button" class="btn btn-link float-right" data-toggle="modal" data-target="#addUserModal">Add User</button>
+      <div class="modal fade" id="addUserModal" tabindex="-1" role="dialog" aria-labelledby="addUserModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h5 class="modal-title" id="addUserModalLabel">Add New User</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+            </button>
+         </div>
+         <form action="/userManager" method="POST">
+            <div class="modal-body">
+               <div class="form-group">
+                  <label for="addUserUsername">Username</label>
+                  <input type="text" class="form-control" id="addUserUsername" name="username" placeholder="Enter username">
+               </div>
+               <div class="form-group">
+                  <label for="addUserPassword">Password</label>
+                  <input type="password" class="form-control" id="addUserPassword" name="password" placeholder="Enter password">
+               </div>
+               <div class="form-group">
+                  <label for="addUserFirstName">First Name</label>
+                  <input type="text" class="form-control" id="addUserFirstName" name="firstName" placeholder="Enter first name">
+               </div>
+               <div class="form-group">
+                  <label for="addUserLastName">Last Name</label>
+                  <input type="text" class="form-control" id="addUserLastName" name="lastName" placeholder="Enter last name">
+               </div>
+               <div class="form-group">
+                  <div class="form-check">
+                     <input class="form-check-input" type="checkbox" value="true" id="addUserSetAdmin" name="admin">
+                     <label class="form-check-label" for="addUserSetAdmin">Set admin</label>
+                  </div>
+               </div>
+               <div class="form-group">
+                  <div class="form-check">
+                     <input class="form-check-input" type="checkbox" value="true" id="addUserSetBrowserReport" name="browserReport">
+                     <label class="form-check-label" for="addUserSetBrowserReport">Grant access to Browser Report</label>
+                  </div>
+               </div>
+               <div class="form-group">
+                  <div class="form-check">
+                     <input class="form-check-input" type="checkbox" value="true" id="addUserSetPerformanceReport" name="performanceReport">
+                     <label class="form-check-label" for="addUserSetPerformanceReport">Grant access to Performance Report</label>
+                  </div>
+               </div>
+               <div class="form-group">
+                  <div class="form-check">
+                     <input class="form-check-input" type="checkbox" value="true" id="addUserSetDeviceReport" name="deviceReport">
+                     <label class="form-check-label" for="addUserSetDeviceReport">Grant access to Device Report</label>
+                  </div>
+               </div>
+               <div class="form-group">
+                  <div class="form-check">
+                     <input class="form-check-input" type="checkbox" value="true" id="addUserSetDisplayReport" name="displayReport">
+                     <label class="form-check-label" for="addUserSetDisplayReport">Grant access to Display Report</label>
+                  </div>
+               </div>
+               <div class="form-group">
+                  <div class="form-check">
+                     <input class="form-check-input" type="checkbox" value="true" id="addUserSetErrorReport" name="errorReport">
+                     <label class="form-check-label" for="addUserSetErrorReport">Grant access to Error Report</label>
+                  </div>
+               </div>
+            </div>
+            <div class="modal-footer">
+               <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+               <button type="submit" class="btn btn-primary">Confirm</button>
+            </div>
+         </form>
+      </div>
+      </div>
+      </div>
+      <div class="table-responsive">
+         <table class="table">
+            <thead>
+               <tr>
+                  <% for(let i = 0; i < todos.length; i++) { %>
+                     <th><%= todos[i] %></th>
+                  <% } %>
+                  <th>Actions</th>
+               <tr>
+            </thead>
+            <tbody>
+               <% for(let i = 0; i < results.length; i++) { %>
+                  <tr>
+                     <% for(let j = 0; j < todos.length; j++) { %>
+                        <td>
+                           <% if(!isNaN(results[i][todos[j]])) { %>
+                              <% if(results[i][todos[j]] === 1) { %>
+                                 <span class="has-access">Yes</span>
+                              <% } else { %>
+                              <span class="no-access">No</span>
+                              <% } %>
+                           <% } else { %>
+                              <%= results[i][todos[j]] %>
+                           <% } %>
+                        </td>
+                     <% } %>
+                     <td>
+                        <button type="button" class="btn btn-link" data-toggle="modal" data-target="#editUserModal<%= results[i]['username'] %>">Edit</button>
+                        <div class="modal fade" id="editUserModal<%= results[i]['username'] %>" tabindex="-1" role="dialog" aria-labelledby="editUserModalLabel<%= results[i]['username'] %>" aria-hidden="true">
+                           <div class="modal-dialog" role="document">
+                              <div class="modal-content">
+                                 <div class="modal-header">
+                                    <h5 class="modal-title" id="editUserModalLabel<%= results[i]['username'] %>">Edit User [<%= results[i]['username'] %>]</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                    </button>
+                                 </div>
+                                 <form action="/userManager/<%= results[i]['username'] %>" method="POST">
+                                    <input type="hidden" name="_method" value="PUT">
+                                    <div class="modal-body">
+                                       <div class="form-group">
+                                          <label for="editUserUsernam<%= results[i]['username'] %>e">Username</label>
+                                          <input type="text" class="form-control" id="editUserUsername<%= results[i]['username'] %>" name="username" placeholder="Enter username" value="<%= results[i]['username'] %>">
+                                       </div>
+                                       <div class="form-group">
+                                          <label for="editUserPassword<%= results[i]['username'] %>">New Password</label>
+                                          <input type="password" class="form-control" id="editUserPassword<%= results[i]['username'] %>" name="password" placeholder="Enter new password">
+                                       </div>
+                                       <div class="form-group">
+                                          <label for="editUserFirstName<%= results[i]['username'] %>">First Name</label>
+                                          <input type="text" class="form-control" id="editUserFirstName<%= results[i]['username'] %>" name="firstName" placeholder="Enter first name" value="<%= results[i]['firstName'] %>">
+                                       </div>
+                                       <div class="form-group">
+                                          <label for="editUserLastName<%= results[i]['username'] %>">Last Name</label>
+                                          <input type="text" class="form-control" id="editUserLastName<%= results[i]['username'] %>" name="lastName" placeholder="Enter last name" value="<%= results[i]['lastName'] %>">
+                                       </div>
+                                       <div class="form-group">
+                                          <div class="form-check">
+                                             <input class="form-check-input" type="checkbox" value="true" id="editUserSetAdmin<%= results[i]['username'] %>" name="admin" <% if(results[i]['admin']===1) { %> checked <% } %>>
+                                             <label class="form-check-label" for="editUserSetAdmin<%= results[i]['username'] %>">Set admin</label>
+                                          </div>
+                                       </div>
+                                       <div class="form-group">
+                                          <div class="form-check">
+                                             <input class="form-check-input" type="checkbox" value="true" id="editUserSetBrowserReport<%= results[i]['username'] %>" name="browserReport" <% if(results[i]['browserReport']===1) { %> checked <% } %>>
+                                             <label class="form-check-label" for="editUserSetBrowserReport<%= results[i]['username'] %>">Grant access to Browser Report</label>
+                                          </div>
+                                       </div>
+                                       <div class="form-group">
+                                          <div class="form-check">
+                                             <input class="form-check-input" type="checkbox" value="true" id="editUserSetPerformanceReport<%= results[i]['username'] %>" name="performanceReport" <% if(results[i]['performanceReport']===1) { %> checked <% } %>>
+                                             <label class="form-check-label" for="editUserSetPerformanceReport<%= results[i]['username'] %>">Grant access to Performance Report</label>
+                                          </div>
+                                       </div>
+                                       <div class="form-group">
+                                          <div class="form-check">
+                                             <input class="form-check-input" type="checkbox" value="true" id="editUserSetDeviceReport<%= results[i]['username'] %>" name="deviceReport" <% if(results[i]['deviceReport']===1) { %> checked <% } %>>
+                                             <label class="form-check-label" for="editUserSetDeviceReport<%= results[i]['username'] %>">Grant access to Device Report</label>
+                                          </div>
+                                       </div>
+                                       <div class="form-group">
+                                          <div class="form-check">
+                                             <input class="form-check-input" type="checkbox" value="true" id="editUserSetDisplayReport<%= results[i]['username'] %>" name="displayReport" <% if(results[i]['displayReport']===1) { %> checked <% } %>>
+                                             <label class="form-check-label" for="editUserSetDisplayReport<%= results[i]['username'] %>">Grant access to Display Report</label>
+                                          </div>
+                                       </div>
+                                       <div class="form-group">
+                                          <div class="form-check">
+                                             <input class="form-check-input" type="checkbox" value="true" id="editUserSetErrorReport<%= results[i]['username'] %>" name="errorReport" <% if(results[i]['errorReport']===1) { %> checked <% } %>>
+                                             <label class="form-check-label" for="editUserSetErrorReport<%= results[i]['username'] %>">Grant access to Error Report</label>
+                                          </div>
+                                       </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                       <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                       <button type="submit" class="btn btn-primary">Confirm</button>
+                                    </div>
+                                 </form>
+                              </div>
+                           </div>
+                        </div>
+                        <% if (curUser.username !== results[i]['username']) { %>
+                           <form method="POST" action="/userManager/<%= results[i]['username'] %>">
+                              <input type="hidden" name="_method" value="DELETE">
+                              <button type="submit" class="btn btn-link">Delete</button>
+                           </form>
+                        <% } %>
+                     </td>
+                  </tr>
+               <% } %>
+            </tbody>
+         </table>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+      integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+      crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+      integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+      crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+      integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+      crossorigin="anonymous"></script>
+  </body>
+</html>
